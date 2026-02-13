@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class film():
-    ID: int
+    id: int
     name: str
     genre: str
     director:str
@@ -13,6 +13,7 @@ class film():
     price: int
     copy: int
 
+GLOBAL_FILM_ID = 0
 
 def input_film_data():
     admin_answer = "yes"
@@ -25,15 +26,22 @@ def input_film_data():
         release = int(input("Год релиза: "))
         duration = int(input("Длительность: "))
         rating = float(input("Рейтинг: "))
-        price = int(input("цена: "))
-        copy = int(input("кол-во копий: "))
+        price = int(input("Цена: "))
+        copy = int(input("Кол-во копий: "))
 
-        films.append(film(0, name, genre, director,release, duration,rating, price, copy ))
+        films.append(film(0, name, genre, director, release, duration,rating, price, copy ))
 
         os.system('cls')
-        admin_answer = (input("Хотите добавить еще фильм?(yes/no)"))
+        admin_answer = (input("Хотите добавить еще фильм?(yes/no): "))
 
     return films
+
+def add_film_to_list(films, film):
+    global GLOBAL_FILM_ID
+    GLOBAL_FILM_ID += 1
+
+    film.id = GLOBAL_FILM_ID
+    films.append(film)
 
 
 # 1 поиск фильмов
@@ -187,7 +195,7 @@ def average_film_duratin(films):
 # 4 вывести топ-3 фильма по рейтингу
 def top_3_by_raiting(films):
     if len(films) == 0:
-        print("Нет фильмов дл яотображения.")
+        print("Нет фильмов для отображения.")
 
         return
 
@@ -216,8 +224,6 @@ def top_3_by_raiting(films):
         print(f" - {film.name}: {film.rating}")
 
     input("\nНажмите Enter для возврата в меню...")
-
-
 
 # 5. увеличить цену фильмов, выпущенных до 2000 года
 def increase_price_for_old_films(films):
@@ -314,78 +320,110 @@ def delete_film_by_rating(films):
             retained_films.append(film)
     return retained_films
 
+# дополнительные функции:
+# 1. вывести фильмы дороже указанной суммы
+def print_films_more_expensive(films):
+    user_price = int(input("Введите минимальную цену: "))
+    correct_films = []
+    for film in films:
+        if film.price > user_price:
+            correct_films.append(film)
+    return correct_films
 
+# 2. изменить жанр фильма по ИД
+def find_film_by_id(films, id):
+    for i in range(len(films)):
+        if films[i].id == id:
+            return i
 
+    return -1
 
-def main_screen():
+def change_genre_by_id(films):
+    id = int(input("Введите id фильма: "))
+    user_index = find_film_by_id(films, id)
 
-    print("Выберите дейтвие\n----------------")
-    print("1. Поиск фильма")
-    print("2. Все фильмы")
-    print("3. Средняя длительность")
-    print("4. ТОП 3 фильма")
-    print("5. Жанры фильмов")
-    print("6. Админ")
-
-    what_user_want = int(input("Действие: "))
+    if user_index == -1:
+        print(f"Фильм с id = {id} не найден")
+        return
     
-    return what_user_want
+    new_genre = input("Введите новый жанр: ").strip()
+    films[user_index].genre = new_genre
+    print(f"Жанр фильма {films[user_index].name} изменен на {new_genre}")
+    
+    
+
+
+# def main_screen():
+
+#     print("Выберите дейтвие\n----------------")
+#     print("1. Поиск фильма")
+#     print("2. Все фильмы")
+#     print("3. Средняя длительность")
+#     print("4. ТОП 3 фильма")
+#     print("5. Жанры фильмов")
+#     print("6. Админ")
+
+#     what_user_want = int(input("Действие: "))
+    
+#     return what_user_want
 
 films = []
-what_user_want = main_screen()
+# what_user_want = main_screen()
 
-if what_user_want == 6:
-    print("Выберите дейтвие\n----------------")
-    print("1. Удалить фильмы с рейтингом ниже 5 ")
-    print("2. Сгрупировать фильмы по жанрам")
-    print("3. Пометить фильмы длительностью более 150 минут как «эпик»")
-    print("4. Увеличить цену фильмов, выпущенных до 2000 года")
-    print("5. Добавить фильм")
-    what_user_want = int(input("Действие: "))
+# if what_user_want == 6:
+#     print("Выберите дейтвие\n----------------")
+#     print("1. Удалить фильмы с рейтингом ниже 5 ")
+#     print("2. Сгрупировать фильмы по жанрам")
+#     print("3. Пометить фильмы длительностью более 150 минут как «эпик»")
+#     print("4. Увеличить цену фильмов, выпущенных до 2000 года")
+#     print("5. Добавить фильм")
+#     what_user_want = int(input("Действие: "))
 
 
-    if what_user_want == 5:
-        films = input_film_data()
 
-    if what_user_want == 1:
-        delete_film_by_rating(films)
+#     if what_user_want == 1:
+#         delete_film_by_rating(films)
 
-    if what_user_want == 2:
-        print_grouped_films(films)
+#     if what_user_want == 2:
+#         print_grouped_films(films)
 
-    if what_user_want == 3:
-        tag_duration_more_150_minutes(films)
+#     if what_user_want == 3:
+#         tag_duration_more_150_minutes(films)
 
-    if what_user_want == 4:
-        increase_price_for_old_films(films)
+#     if what_user_want == 4:
+#         increase_price_for_old_films(films)
 
+#     if what_user_want == 5:
+#         films = add_film_to_list(films, film)
     
 
-if what_user_want == 1:
-    print("Поиск по году выпуска или по жанру")
-    print("1. Диапазон годов ")
-    print("2. Жанр ")
-    what_user_want = int(input("Действие: "))
-    if what_user_want == 1:
-        find_film_release(films)
-    if what_user_want == 2:
-        find_film_genre(films)
+# if what_user_want == 1:
+#     print("Поиск по году выпуска или по жанру")
+#     print("1. Диапазон годов ")
+#     print("2. Жанр ")
+#     what_user_want = int(input("Действие: "))
+#     if what_user_want == 1:
+#         find_film_release(films)
+#     if what_user_want == 2:
+#         find_film_genre(films)
 
-if what_user_want == 2:
-    print("Вывести фильмы по длительности или рейтингу?")
-    print("1. Длительности")
-    print("2. Рейтингу")
-    what_user_want = int(input("Действие: "))
-    if what_user_want == 1:
-        sorting_movies_duration(films)
-    if what_user_want == 2:
-        sorting_movies_rating(films)
+# if what_user_want == 2:
+#     print("Вывести фильмы по длительности или рейтингу?")
+#     print("1. Длительности")
+#     print("2. Рейтингу")
+#     what_user_want = int(input("Действие: "))
+#     if what_user_want == 1:
+#         sorting_movies_duration(films)
+#     if what_user_want == 2:
+#         sorting_movies_rating(films)
 
-if what_user_want == 3:
-    average_film_duratin(films)
+# if what_user_want == 3:
+#     average_film_duratin(films)
 
-if what_user_want == 4:
-    top_3_by_raiting(films)
+# if what_user_want == 4:
+#     top_3_by_raiting(films)
 
-if what_user_want == 5:
-    increase_price_for_old_films(films)
+# if what_user_want == 5:
+#     increase_price_for_old_films(films)
+films = add_film_to_list(films, input_film_data())
+change_genre_by_id(films)
