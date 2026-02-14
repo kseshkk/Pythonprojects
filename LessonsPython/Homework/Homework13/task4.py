@@ -94,7 +94,7 @@ def input_film_data():
         price = input_int("Цена: ", 0, 10000)
         copy = input_int("Кол-во копий: ", 0, 10000)
 
-        new_film = film(0, name, genre, director, release, duration,rating, price, copy )
+        new_film = film(0, name, genre, director, release, duration,rating, price, copy)
         add_film_to_list(films, new_film)
 
         os.system('cls')
@@ -469,7 +469,7 @@ if what_user_want == 1:
     print("Поиск по году выпуска или по жанру")
     print("1. Диапазон годов ")
     print("2. Жанр ")
-    what_user_want = int(input("Действие: "))
+    what_user_want = input_int("Действие: ", 1, 2)
     if what_user_want == 1:
         find_film_release(films)
     if what_user_want == 2:
@@ -479,7 +479,7 @@ if what_user_want == 2:
     print("Вывести фильмы по длительности или рейтингу?")
     print("1. Длительности")
     print("2. Рейтингу")
-    what_user_want = int(input("Действие: "))
+    what_user_want = input_int("Действие: ", 1, 2)
     if what_user_want == 1:
         sorting_movies_duration(films)
     if what_user_want == 2:
