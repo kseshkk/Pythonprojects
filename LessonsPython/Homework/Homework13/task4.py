@@ -70,7 +70,6 @@ def input_str(message, min_length, max_length):
     return str_data
 
 
-
 GLOBAL_FILM_ID = 0
 
 def add_film_to_list(films, film):
@@ -103,14 +102,12 @@ def input_film_data():
     return films
 
 
-
-
 # 1 поиск фильмов
 def find_film_release(films):
 
-    print("Введите диапозон годов выпуска фильма, что хотите найти")
-    user_find1 = int(input("1ый год: "))
-    user_find2 = int(input("2ой год: "))
+    print("Введите диапазон годов выпуска фильма, что хотите найти")
+    user_find1 = input_int("1ый год: ", 1895, 2027)
+    user_find2 = input_int("2ой год: ", 1895, 2027)
 
     j = 0
     os.system('cls')
@@ -228,7 +225,7 @@ def sorting_movies_rating(films):
     input("\nНажмите Tnter для возврата в меню...")
 
 # 3 подсчитать среднюю длительность фильмов
-def average_film_duratin(films):
+def average_film_duration(films):
     if len(films) == 0:
         print("Нет фильмов для расчета средней длительности.")
 
@@ -313,7 +310,7 @@ def increase_price_for_old_films(films):
             increase_amount = old_price * (percent / 100)
             film.price = int(old_price + increase_amount)
             total_increase += increase_amount
-            old_price_films.apppend({
+            old_price_films.append({
                 'film': film,
                 'old_price': old_price,
                 'increase': increase_amount
@@ -454,7 +451,6 @@ def find_old_movie(film):
 
     return oldest_film
 
-
 # 5. Вывести уникальных режиссеров
 def find_unique_director(films):
     unique_director = []
@@ -463,7 +459,7 @@ def find_unique_director(films):
             unique_director.append(film.director)
     
     print("УНИКАЛЬНЫЕ РЕЖИССЕРЫ")
-    i = 1
+    i += 1
     for director in unique_director:
         print(f"{i}. {director}")
 
@@ -562,7 +558,7 @@ while True:
             cell_input()
 
     if what_user_want == 3:
-        average_film_duratin(films)
+        average_film_duration(films)
         cell_input()
 
     if what_user_want == 4:
