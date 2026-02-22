@@ -84,9 +84,9 @@ def input_film_data():
     films = []
     while admin_answer == "yes":
         print("Введите данные фильма")
-        name = input_str("Название: ", 1, 25)
-        genre = input_str("Жанр: ", 1, 15)
-        director = input_str("Режиссер: ", 1, 20)
+        name = input_str("Название: ", 1, 25).lower
+        genre = input_str("Жанр: ", 1, 15).lower
+        director = input_str("Режиссер: ", 1, 20).lower
         release = input_int("Год релиза: ", 1895, 2027)
         duration = input_int("Длительность: ", 1, 10000)
         rating = input_float("Рейтинг: ", 1, 10)
@@ -488,7 +488,48 @@ def cell_input():
 films = []
 
 while True:
-    what_user_want = main_screen()
+    what_user_want = main_screen() 
+
+    if what_user_want == 1:
+        print("Поиск по году выпуска или по жанру")
+        print("1. Диапозон годов ")
+        print("2. Жанр ")
+        what_user_want = input_int("Действие: ", 1, 2)
+        if what_user_want == 1:
+            find_film_release(films)
+            cell_input()
+        if what_user_want == 2:
+            find_film_genre(films)
+            cell_input()
+
+    if what_user_want == 2:
+        print("Вывести фильмы по длительности или рейтингу?")
+        print("1. Длительности")
+        print("2. Рейтингу")
+        what_user_want = input_int("Действие: ", 1, 2)
+        if what_user_want == 1:
+            sorting_movies_duration(films)
+            cell_input()
+        if what_user_want == 2:
+            sorting_movies_rating(films)
+            cell_input()
+
+    if what_user_want == 3:
+        average_film_duration(films)
+        cell_input()
+
+    if what_user_want == 4:
+        top_3_by_raiting(films)
+        cell_input()
+
+    if what_user_want == 5:
+        increase_price_for_old_films(films)
+        cell_input()
+
+    if what_user_want == 6:
+        find_unique_director(films)
+        cell_input()
+
 
     if what_user_want == 7:
         print("Выберите дейтвие\n----------------")
@@ -530,45 +571,3 @@ while True:
         if what_user_want == 7:
             change_genre_by_id(films)
             cell_input()
-
-        
-
-    if what_user_want == 1:
-        print("Поиск по году выпуска или по жанру")
-        print("1. Диапозон годов ")
-        print("2. Жанр ")
-        what_user_want = input_int("Действие: ", 1, 2)
-        if what_user_want == 1:
-            find_film_release(films)
-            cell_input()
-        if what_user_want == 2:
-            find_film_genre(films)
-            cell_input()
-
-    if what_user_want == 2:
-        print("Вывести фильмы по длительности или рейтингу?")
-        print("1. Длительности")
-        print("2. Рейтингу")
-        what_user_want = input_int("Действие: ", 1, 2)
-        if what_user_want == 1:
-            sorting_movies_duration(films)
-            cell_input()
-        if what_user_want == 2:
-            sorting_movies_rating(films)
-            cell_input()
-
-    if what_user_want == 3:
-        average_film_duration(films)
-        cell_input()
-
-    if what_user_want == 4:
-        top_3_by_raiting(films)
-        cell_input()
-
-    if what_user_want == 5:
-        increase_price_for_old_films(films)
-        cell_input()
-
-    if what_user_want == 6:
-        find_unique_director(films)
-        cell_input()
