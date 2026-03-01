@@ -396,8 +396,8 @@ def find_unique_director(films):
             unique_director.append(film.director)
     
     print("УНИКАЛЬНЫЕ РЕЖИССЕРЫ")
-    i += 1
     for director in unique_director:
+        i += 1
         print(f"{i}. {director}")
 
 # вывести все фильмы
