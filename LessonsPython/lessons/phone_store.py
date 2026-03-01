@@ -10,7 +10,7 @@ from dataclasses import dataclass
 #     Вес - целое число (от 100 до 2000)
 #     Диагональ экрана - дробное число (от 2 до 10)
 #     Ёмкость аккумултора - целое число (от 1500 до 20000)
-#     Состояние - строка (от 5 до 10 символов)
+#     Состояние - число (от 1 до 5)
 #     Цена - целое число (от 1500 до 200000)
 #     Количество на складе - целое число (от 1 до 1000)
 
@@ -33,9 +33,36 @@ GLOBAL_MOBILE_PHONE_ID = 0
 ASC = "ascending"
 DESC = "descending"
 
+BRAND_MIN_LEN = 1
+BRAND_MAX_LEN = 10
+
+MODEL_MIN_LEN = 1
+MODEL_MAX_LEN = 15
+
+WEIGHT_MIN = 100
+WEIGHT_MAX = 2000
+
+SCREEN_MIN = 2.0
+SCREEN_MAX = 10.0
+
+BATTERY_MIN = 1500
+BATTERY_MAX = 20000
+
+STATUS_MIN = 1
+STATUS_MAX = 5
+
+PRICE_MIN = 1500
+PRICE_MAX = 200000
+
+AMOUNT_MIN = 1
+AMOUNT_MAX = 1000
+
+FILE_NAME_MIN_LEN = 5
+FILE_NAME_MAX_LEN = 40
+
 
 # действия пользователя в программе
-def clear_console():
+def clear_console() -> None:
     if os.name == "nt":
         os.system("cls")
     elif os.name == "posix":
@@ -44,143 +71,64 @@ def clear_console():
 
 # 1) искать Мобильные телефоны по:
 #     Марка
-def get_phones_by_brand(phones, brand):
-    finded_phones = []
-
-    for item in phones:
-        if item.brand == brand:
-            finded_phones.append(item)
-
-    return finded_phones
+def get_phones_by_brand(phones: list[MobilePhone], brand: str) -> list[MobilePhone]:
+    return [item for item in phones if item.brand.lower() == brand.lower()]
 
 
 #     Цена
-def get_phones_by_price(phones, price):
-    finded_phones = []
-
-    for item in phones:
-        if item.price == price:
-            finded_phones.append(item)
-
-    return finded_phones
+def get_phones_by_price(phones: list[MobilePhone], price: int) -> list[MobilePhone]:
+    return [item for item in phones if item.price == price]
 
 
 #     Состояние
-def get_phones_by_status(phones, status):
-    finded_phones = []
+def get_phones_by_status(phones: list[MobilePhone], status: int) -> list[MobilePhone]:
+    return [item for item in phones if item.status == status]
 
-    for item in phones:
-        if item.status == status:
-            finded_phones.append(item)
 
-    return finded_phones
+# 1) найти все телефоны с минимальной ценой:
+def get_phones_with_min_price(phones: list[MobilePhone]) -> list[MobilePhone]:
+    if len(phones) == 0:
+        return []
+
+    min_price = min(item.price for item in phones)
+
+    return [item for item in phones if item.price == min_price]
 
 
 # 2) сортировать Мобильные телефоны по:
 #     ИД
-def is_swap(number_current, number_next, order):
-    if order == ASC:
-        if number_next < number_current:
-            return True
-        else:
-            return False
-    elif order == DESC:
-        if number_next > number_current:
-            return True
-        else:
-            return False
 
 
-def sort_phones_by_id(phones, order):
-    is_sorted = False
-    offset = 0
-
-    while is_sorted == False:
-        is_sorted = True
-        for i in range(len(phones) - 1 - offset):
-            if is_swap(phones[i].id, phones[i + 1].id, order):
-                temp = phones[i + 1]
-                phones[i + 1] = phones[i]
-                phones[i] = temp
-                is_sorted = False
-
-        offset += 1
+def sort_phones_by_id(phones: list[MobilePhone], order: str) -> None:
+    phones.sort(key=lambda item: item.id, reverse=(order == DESC))
 
     print("список телефонов по ИД успешно отсортирован")
 
 
 #     Цена
-def sort_phones_by_price(phones, order):
-    is_sorted = False
-    offset = 0
-
-    while is_sorted == False:
-        is_sorted = True
-        for i in range(len(phones) - 1 - offset):
-            if is_swap(phones[i].price, phones[i + 1].price, order):
-                temp = phones[i + 1]
-                phones[i + 1] = phones[i]
-                phones[i] = temp
-                is_sorted = False
-
-        offset += 1
+def sort_phones_by_price(phones: list[MobilePhone], order: str) -> None:
+    phones.sort(key=lambda item: item.price, reverse=(order == DESC))
 
     print("список телефонов по Цене успешно отсортирован")
 
 
 #     Диагональ экрана
-def sort_phones_by_screen_diagonal(phones, order):
-    is_sorted = False
-    offset = 0
-
-    while is_sorted == False:
-        is_sorted = True
-        for i in range(len(phones) - 1 - offset):
-            if is_swap(phones[i].screen_diagonal, phones[i + 1].screen_diagonal, order):
-                temp = phones[i + 1]
-                phones[i + 1] = phones[i]
-                phones[i] = temp
-                is_sorted = False
-
-        offset += 1
+def sort_phones_by_screen_diagonal(phones: list[MobilePhone], order: str) -> None:
+    phones.sort(key=lambda item: item.screen_diagonal, reverse=(order == DESC))
 
     print("список телефонов по Диагонали экрана успешно отсортирован")
 
 
 #     Ёмкость аккумултора
-def sort_phones_by_battery(phones, order):
-    is_sorted = False
-    offset = 0
-
-    while is_sorted == False:
-        is_sorted = True
-        for i in range(len(phones) - 1 - offset):
-            if is_swap(phones[i].battery, phones[i + 1].battery, order):
-                temp = phones[i + 1]
-                phones[i + 1] = phones[i]
-                phones[i] = temp
-                is_sorted = False
-
-        offset += 1
+def sort_phones_by_battery(phones: list[MobilePhone], order: str) -> None:
+    phones.sort(key=lambda item: item.battery, reverse=(order == DESC))
 
     print("список телефонов по ёмкости аккумулятора успешно отсортирован")
 
 
 #     Вес
-def sort_phones_by_weight(phones, order):
-    is_sorted = False
-    offset = 0
-
-    while is_sorted == False:
-        is_sorted = True
-        for i in range(len(phones) - 1 - offset):
-            if is_swap(phones[i].weight, phones[i + 1].weight, order):
-                temp = phones[i + 1]
-                phones[i + 1] = phones[i]
-                phones[i] = temp
-                is_sorted = False
-
-        offset += 1
+def sort_phones_by_weight(phones: list[MobilePhone], order: str) -> None:
+    phones.sort(key=lambda item: item.weight, reverse=(order == DESC))
 
     print("список телефонов по весу успешно отсортирован")
 
@@ -188,7 +136,7 @@ def sort_phones_by_weight(phones, order):
 # 3) добавлять новые мобильные телефоны в список телефонов
 
 
-def input_int(message, min_number, max_number):
+def input_int(message: str, min_number: int, max_number: int) -> int:
     is_correct_input = False
 
     while is_correct_input == False:
@@ -209,7 +157,7 @@ def input_int(message, min_number, max_number):
     return number
 
 
-def input_float(message, min_number, max_number):
+def input_float(message: str, min_number: float, max_number: float) -> float:
     is_correct_input = False
 
     while is_correct_input == False:
@@ -230,7 +178,7 @@ def input_float(message, min_number, max_number):
     return number
 
 
-def input_str(message, min_length, max_length):
+def input_str(message: str, min_length: int, max_length: int) -> str:
     is_correct_input = False
 
     while is_correct_input == False:
@@ -247,24 +195,24 @@ def input_str(message, min_length, max_length):
     return str_data
 
 
-def input_phone_data():
+def input_phone_data() -> MobilePhone:
     print("Введите данные телефона")
 
-    brand = input_str("марку: ", 1, 10)
-    model = input_str("модель: ", 1, 15)
-    weight = input_int("вес: ", 100, 2000)
-    screen_diagonal = input_float("диагональ экрана: ", 2, 10)
-    battery = input_int("ёмкость акумулятора: ", 1500, 20000)
-    status = input_int("статус (от 1 до 5): ", 1, 5)
-    price = input_int("цену: ", 1500, 200000)
-    amount = input_int("количество на складе: ", 1, 1000)
+    brand = input_str("марку: ", BRAND_MIN_LEN, BRAND_MAX_LEN)
+    model = input_str("модель: ", MODEL_MIN_LEN, MODEL_MAX_LEN)
+    weight = input_int("вес: ", WEIGHT_MIN, WEIGHT_MAX)
+    screen_diagonal = input_float("диагональ экрана: ", SCREEN_MIN, SCREEN_MAX)
+    battery = input_int("ёмкость акумулятора: ", BATTERY_MIN, BATTERY_MAX)
+    status = input_int("статус (от 1 до 5): ", STATUS_MIN, STATUS_MAX)
+    price = input_int("цену: ", PRICE_MIN, PRICE_MAX)
+    amount = input_int("количество на складе: ", AMOUNT_MIN, AMOUNT_MAX)
 
     return MobilePhone(
         0, brand, model, weight, screen_diagonal, battery, status, price, amount
     )
 
 
-def add_phone_to_list(phones, phone):
+def add_phone_to_list(phones: list[MobilePhone], phone: MobilePhone) -> None:
     global GLOBAL_MOBILE_PHONE_ID
     GLOBAL_MOBILE_PHONE_ID += 1
 
@@ -276,7 +224,14 @@ def add_phone_to_list(phones, phone):
 
 
 # 4) удалять мобильные телефоны из списка телефонов по ИД
-def find_phone_index_by_id(phones, id):
+def find_phone_index_by_id(phones: list[MobilePhone], id: int) -> int:
+    # finded = [index for index, item in enumerate(phones) if item.id == id]
+
+    # if len(finded) == 0:
+    #     return -1
+
+    # return finded[0]
+
     for i in range(len(phones)):
         if phones[i].id == id:
             return i
@@ -284,7 +239,7 @@ def find_phone_index_by_id(phones, id):
     return -1
 
 
-def delete_phone_by_id(phones, id):
+def delete_phone_by_id(phones: list[MobilePhone], id: int) -> None:
     delete_index = find_phone_index_by_id(phones, id)
 
     if delete_index == -1:
@@ -296,7 +251,7 @@ def delete_phone_by_id(phones, id):
 
 
 # 5) изменить поле "Количество на складе" в сущности мобильный телефон по ИД
-def change_phone_amount(phones, id, new_amount):
+def change_phone_amount(phones: list[MobilePhone], id: int, new_amount: int) -> None:
     change_index = find_phone_index_by_id(phones, id)
 
     if change_index == -1:
@@ -311,7 +266,7 @@ def change_phone_amount(phones, id, new_amount):
 
 
 # 6) изменить всю информацию о мобильном телефоне, кроме поля ИД, предварительно найдя его по ИД
-def change_phone_information(phones, id):
+def change_phone_information(phones: list[MobilePhone], id: int) -> None:
     change_index = find_phone_index_by_id(phones, id)
 
     if change_index == -1:
@@ -321,7 +276,7 @@ def change_phone_information(phones, id):
     new_phone_data = input_phone_data()
 
     phones[change_index].brand = new_phone_data.brand
-    phones[change_index].model = new_phone_data.brand
+    phones[change_index].model = new_phone_data.model
     phones[change_index].weight = new_phone_data.weight
     phones[change_index].screen_diagonal = new_phone_data.screen_diagonal
     phones[change_index].battery = new_phone_data.battery
@@ -333,7 +288,7 @@ def change_phone_information(phones, id):
 
 
 # 7) вывести список всех мобильных телефонов
-def print_phones(phones):
+def print_phones(phones: list[MobilePhone]) -> None:
     print(
         f"{'ИД':<10}{'Марка':<15}{'Модель':<16}{'Вес(гр)':<10}{'Диаг(inch)':<15}{'Аккум(мАч)':<15}{'Состояние':<15}{'Цена(руб)':<15}{'В наличии':<15}"
     )
@@ -349,7 +304,7 @@ def print_phones(phones):
 
 
 # 8) вывести мобильный телефон по ИД
-def print_phone_by_id(phones, id):
+def print_phone_by_id(phones: list[MobilePhone], id: int) -> None:
     print_index = find_phone_index_by_id(phones, id)
 
     if print_index == -1:
@@ -370,7 +325,7 @@ def print_phone_by_id(phones, id):
 #     для последующей удобной загрузки компьютером в эту программу (по одному полю на строку)
 
 
-def save_to_txt_for_human(phones, filename):
+def save_to_txt_for_human(phones: list[MobilePhone], filename: str) -> None:
     try:
         file_out = open(filename, "w", encoding="utf-8")
         file_out.write(
@@ -388,7 +343,7 @@ def save_to_txt_for_human(phones, filename):
         print(f"Ошибка при сохранениии телефонов в файл {filename}")
 
 
-def save_to_txt_for_computer(phones, filename):
+def save_to_txt_for_computer(phones: list[MobilePhone], filename: str) -> None:
     try:
         file_out = open(filename, "w", encoding="utf-8")
         global GLOBAL_MOBILE_PHONE_ID
@@ -409,8 +364,8 @@ def save_to_txt_for_computer(phones, filename):
 # 10) загрузить список мобильных телефонов из текстового файла
 
 
-def load_from_txt_for_computer(filename):
-    phones = []
+def load_from_txt_for_computer(filename: str) -> list[MobilePhone]:
+    phones: list[MobilePhone] = []
 
     try:
         file_in = open(filename, "r", encoding="utf-8")
@@ -452,13 +407,122 @@ def load_from_txt_for_computer(filename):
     return phones
 
 
-phones = []
-is_run = True
-while is_run == True:
-    clear_console()
+def process_add_phone_menu(phones: list[MobilePhone]) -> None:
+    add_phone_to_list(phones, input_phone_data())
 
-    print_phones(phones)
 
+def process_delete_phone_menu(phones: list[MobilePhone]) -> None:
+    id = input_int("Введите ИД телефона для удаления: ", 1, GLOBAL_MOBILE_PHONE_ID)
+    delete_phone_by_id(phones, id)
+
+
+def process_save_human_menu(phones: list[MobilePhone]) -> None:
+    filename = input_str(
+        "Введите имя файла для сохранения: ", FILE_NAME_MIN_LEN, FILE_NAME_MAX_LEN
+    )
+    save_to_txt_for_human(phones, filename)
+
+
+def process_save_computer_menu(phones: list[MobilePhone]) -> None:
+    filename = input_str(
+        "Введите имя файла для сохранения: ", FILE_NAME_MIN_LEN, FILE_NAME_MAX_LEN
+    )
+    save_to_txt_for_computer(phones, filename)
+
+
+def process_load_computer_menu() -> list[MobilePhone]:
+    filename = input_str(
+        "Введите имя файла для загрузки: ", FILE_NAME_MIN_LEN, FILE_NAME_MAX_LEN
+    )
+    return load_from_txt_for_computer(filename)
+
+
+def process_change_information_menu(phones: list[MobilePhone]) -> None:
+    id = input_int("Введите ИД телефона для обновления: ", 1, GLOBAL_MOBILE_PHONE_ID)
+    change_phone_information(phones, id)
+
+
+def process_change_amount_menu(phones: list[MobilePhone]) -> None:
+    id = input_int("Введите ИД телефона для обновления: ", 1, GLOBAL_MOBILE_PHONE_ID)
+    amount = input_int(
+        "Введите новое количество телефонов на складе: ", AMOUNT_MIN, AMOUNT_MAX
+    )
+    change_phone_amount(phones, id, amount)
+
+
+def process_print_phone_by_id_menu(phones: list[MobilePhone]) -> None:
+    id = input_int("Введите ИД телефона для вывода: ", 1, GLOBAL_MOBILE_PHONE_ID)
+    print_phone_by_id(phones, id)
+
+
+def process_exit_menu() -> bool:
+    print("Для завершения работы программы нажмите <Enter>")
+    return False
+
+
+def process_sort_menu(phones: list[MobilePhone]) -> None:
+    print("Выберите первый параметр сортировки")
+
+    print("1. ИД")
+    print("2. Цена")
+    print("3. Диагональ экрана")
+    print("4. Ёмкость аккумулятора")
+    print("5. Вес телефона")
+
+    sort_point = input_int("Выберите пункт меню: ", 1, 5)
+
+    print("Выберите второй параметр сортировки")
+
+    print("1. По возрастанию")
+    print("2. По убыванию")
+
+    order_point = input_int("Выберите пункт меню: ", 1, 2)
+
+    order = ""
+    if order_point == 1:
+        order = ASC
+    elif order_point == 2:
+        order = DESC
+
+    if sort_point == 1:
+        sort_phones_by_id(phones, order)
+    elif sort_point == 2:
+        sort_phones_by_price(phones, order)
+    elif sort_point == 3:
+        sort_phones_by_screen_diagonal(phones, order)
+    elif sort_point == 4:
+        sort_phones_by_battery(phones, order)
+    elif sort_point == 5:
+        sort_phones_by_weight(phones, order)
+
+
+def process_find_menu(phones: list[MobilePhone]) -> None:
+    print("Выберите первый параметр поиска")
+
+    print("1. Марка")
+    print("2. Цена")
+    print("3. Статус")
+
+    find_point = input_int("Выберите пункт меню: ", 1, 3)
+
+    finded_phones: list[MobilePhone] = []
+
+    if find_point == 1:
+        brand = input_str("Введите название марки: ", BRAND_MIN_LEN, BRAND_MAX_LEN)
+        finded_phones = get_phones_by_brand(phones, brand)
+    elif find_point == 2:
+        price = input_int("Введите цену телефона: ", PRICE_MIN, PRICE_MAX)
+        finded_phones = get_phones_by_price(phones, price)
+    elif find_point == 3:
+        status = input_int(
+            "Введите статус телефона (от 1 до 5): ", STATUS_MIN, STATUS_MAX
+        )
+        finded_phones = get_phones_by_status(phones, status)
+
+    print_phones(finded_phones)
+
+
+def print_main_menu() -> None:
     print("\n============\n")
 
     print("======МЕНЮ======")
@@ -472,95 +536,45 @@ while is_run == True:
     print("8. Отсортировать список телефонов по ...")
     print("9. Найти мобильные телефоны по ...")
     print("10. Вывести телефон по ИД")
+    print("11. Вывести все телефоны с минимальной ценой")
     print("0. Выйти из программы")
 
-    menu_point = input_int("Выберите пункт меню: ", 0, 10)
+
+phones: list[MobilePhone] = []
+
+is_run = True
+while is_run == True:
+    clear_console()
+
+    print_phones(phones)
+
+    print_main_menu()
+
+    menu_point = input_int("Выберите пункт меню: ", 0, 11)
 
     if menu_point == 1:
-        add_phone_to_list(phones, input_phone_data())
+        process_add_phone_menu(phones)
     elif menu_point == 2:
-        id = input_int("Введите ИД телефона для удаления: ", 1, GLOBAL_MOBILE_PHONE_ID)
-        delete_phone_by_id(phones, id)
+        process_delete_phone_menu(phones)
     elif menu_point == 3:
-        filename = input_str("Введите имя файла для сохранения: ", 5, 40)
-        save_to_txt_for_human(phones, filename)
+        process_save_human_menu(phones)
     elif menu_point == 4:
-        filename = input_str("Введите имя файла для сохранения: ", 5, 40)
-        save_to_txt_for_computer(phones, filename)
+        process_save_computer_menu(phones)
     elif menu_point == 5:
-        filename = input_str("Введите имя файла для загрузки: ", 5, 40)
-        phones = load_from_txt_for_computer(filename)
+        phones = process_load_computer_menu()
     elif menu_point == 6:
-        id = input_int(
-            "Введите ИД телефона для обновления: ", 1, GLOBAL_MOBILE_PHONE_ID
-        )
-        change_phone_information(phones, id)
+        process_change_information_menu(phones)
     elif menu_point == 7:
-        id = input_int(
-            "Введите ИД телефона для обновления: ", 1, GLOBAL_MOBILE_PHONE_ID
-        )
-        amount = input_int("Введите новое количество телефонов на складе: ", 1, 1000)
-        change_phone_amount(phones, id, amount)
+        process_change_amount_menu(phones)
     elif menu_point == 8:
-        print("Выберите первый параметр сортировки")
-
-        print("1. ИД")
-        print("2. Цена")
-        print("3. Диагональ экрана")
-        print("4. Ёмкость аккумулятора")
-        print("5. Вес телефона")
-
-        sort_point = input_int("Выберите пункт меню: ", 1, 5)
-
-        print("Выберите второй параметр сортировки")
-
-        print("1. По возрастанию")
-        print("2. По убыванию")
-
-        order_point = input_int("Выберите пункт меню: ", 1, 2)
-
-        order = ""
-        if order_point == 1:
-            order = ASC
-        elif order_point == 2:
-            order = DESC
-
-        if sort_point == 1:
-            sort_phones_by_id(phones, order)
-        elif sort_point == 2:
-            sort_phones_by_price(phones, order)
-        elif sort_point == 3:
-            sort_phones_by_screen_diagonal(phones, order)
-        elif sort_point == 4:
-            sort_phones_by_battery(phones, order)
-        elif sort_point == 5:
-            sort_phones_by_weight(phones, order)
+        process_sort_menu(phones)
     elif menu_point == 9:
-        print("Выберите первый параметр поиска")
-
-        print("1. Марка")
-        print("2. Цена")
-        print("3. Статус")
-
-        find_point = input_int("Выберите пункт меню: ", 1, 3)
-
-        finded_phones = []
-
-        if find_point == 1:
-            brand = input_str("Введите название марки: ", 1, 10)
-            finded_phones = get_phones_by_brand(phones, brand)
-        elif find_point == 2:
-            price = input_int("Введите цену телефона: ", 1500, 200000)
-            finded_phones = get_phones_by_price(phones, brand)
-        elif find_point == 3:
-            status = input_int("Введите статус телефона (от 1 до 5): ", 1, 5)
-            finded_phones = get_phones_by_status(phones, status)
-
-        print_phones(finded_phones)
+        process_find_menu(phones)
     elif menu_point == 10:
-        id = input_int("Введите ИД телефона для вывода: ", 1, GLOBAL_MOBILE_PHONE_ID)
-        print_phone_by_id(phones, id)
+        process_print_phone_by_id_menu(phones)
+    elif menu_point == 11:
+        finded_phones = get_phones_with_min_price(phones)
+        print_phones(finded_phones)
     elif menu_point == 0:
-        print("Для завершения работы программы нажмите <Enter>")
-        is_run = False
+        is_run = process_exit_menu()
     input()
