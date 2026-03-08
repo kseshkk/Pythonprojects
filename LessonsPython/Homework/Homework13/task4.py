@@ -192,11 +192,11 @@ def top_3_by_raiting(films):
     print("Топ 3 фильма по рейтингу\n" + "=" * 40)
 
     sorted_films = sorted(films, key=lambda film: film.rating, reverse=True)
-    coun = min(3, len(sorted_films))
+    count = min(3, len(sorted_films))
 
     print(f"Рейтинг основан на оценке от 0.0 до 10.0\n")
 
-    for i in range(coun):
+    for i in range(count):
         film = sorted_films[i]
         print(f"{i+1}. {film.name}")
         print(f"Рейтинг:{film.rating}")
@@ -226,12 +226,8 @@ def increase_price_for_old_films(films):
     print("Увеличение цены для фильмов до 2000 года\n" + "=" * 50)
 
     print("Введите процент увеличения цены(пример: 10 25 40):")
-    try:
-        percent = float(input("Процент: "))
-    except ValueError:
-        print("Ошибка!Введите число.")
-        return
-
+    percent = input_int("Процент: ", 0, 100)
+    
     old_price_films = []
     total_increase = 0
 
@@ -491,6 +487,7 @@ while is_run == True:
             
         if what_user_want == 2:
             sorting_movies_rating(films, order)
+        cell_input()
             
 
     if what_user_want == 3:
