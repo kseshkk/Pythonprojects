@@ -32,9 +32,8 @@ class Student:
         print(f"Имя: {self.name}, Фамилия: {self.surname}, Возраст: {self.age}, Средняя оценка: {average_grade:.2f}")
         
 
-
-pupil1 = Student("безымянный", "бро", 15)
-pupil1.add_grade(5)
-pupil1.add_grade(4)
-pupil1.add_grade(4)
-pupil1.get_info()
+# pupil1 = Student("аа", "бб", 15)
+# pupil1.add_grade(5)
+# pupil1.add_grade(4)
+# pupil1.add_grade(4)
+# pupil1.get_info()
