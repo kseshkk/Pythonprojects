@@ -19,3 +19,6 @@ class Course:
     def print_all_students(self):
         for item in self.students:
             item.get_info()
+
+
+    
