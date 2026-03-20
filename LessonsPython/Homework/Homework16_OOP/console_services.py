@@ -1,9 +1,14 @@
 import os
 
-
 def clear_console() -> None:
     os.system("cls" if os.name == "nt" else "clear")
 
+def print_devider() -> None:
+    print("=" * 30)
+    print()
+
+def check_enter() -> None:
+    input()
 
 def input_int(message: str, min_number: int, max_number: int) -> int:
     is_correct_input = False
@@ -26,7 +31,6 @@ def input_int(message: str, min_number: int, max_number: int) -> int:
 
     return number
 
-
 def input_str(message: str, min_length: int, max_length: int) -> str:
     is_correct_input = False
     str_data = ""
@@ -43,12 +47,3 @@ def input_str(message: str, min_length: int, max_length: int) -> str:
             is_correct_input = True
 
     return str_data
-
-
-def check_enter() -> None:
-    input()
-
-
-def print_devider() -> None:
-    print("=" * 15)
-    print()
