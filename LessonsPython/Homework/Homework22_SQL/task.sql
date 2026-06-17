@@ -101,22 +101,3 @@ JOIN groups AS g
 ON g.id = s.group_id
 GROUP BY g.id
 
--- 18 Найти самого сильного ученика в каждой группе
-SELECT name, first_name, last_name, average_score FROM students AS s
-JOIN groups AS g 
-ON g.id = s.group_id
-WHERE s.average_score = (
-    SELECT MAX(average_score)
-    FROM students AS s2
-    WHERE s2.group_id = s.group_id
-)
-ORDER BY g.name
-
--- 19 Найти самую младшую возрастную группу по среднему возрасту учеников.
-SELECT name, AVG(age) AS avg_age
-FROM groups AS g
-LEFT JOIN students AS s 
-ON g.id = s.group_id
-GROUP BY g.id
-ORDER BY avg_age ASC
-LIMIT 1
