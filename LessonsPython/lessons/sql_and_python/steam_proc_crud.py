@@ -12,16 +12,16 @@ DB_CONFIG = {
     "password": "12345",
 }
 
+
 @dataclass(slots=True)
 class UserRole:
-    id: int
     role_name: str
     description: str
+    id: int | None = None
 
 
 @dataclass(slots=True)
 class User:
-    id: int
     nickname: str
     email: str
     steam_level: int
@@ -29,6 +29,8 @@ class User:
     last_online: datetime
     is_online: bool
     role_id: int
+
+    id: int | None = None
 
     role: UserRole | None = None
 
@@ -41,6 +43,9 @@ class User:
 
 def get_connection():
     return psycopg.connect(**DB_CONFIG)
+
+
+# ===== USERS START =====
 
 
 def get_all_users_with_roles(conn) -> list[User]:
@@ -73,7 +78,11 @@ def get_all_users_with_roles(conn) -> list[User]:
         rows = cur.fetchall()
 
         for row in rows:
-            new_role = UserRole(row["ur_id"], row["role_name"], row["description"])
+            new_role = UserRole(
+                id=row["ur_id"],
+                role_name=row["role_name"],
+                description=row["description"],
+            )
 
             new_user = User(
                 id=row["id"],
@@ -92,7 +101,7 @@ def get_all_users_with_roles(conn) -> list[User]:
     return users_list
 
 
-def get_users(conn) -> list[User]:
+def get_all_users(conn) -> list[User]:
     with conn.cursor(row_factory=class_row(User)) as cur:
 
         cur.execute("""SELECT 
@@ -153,25 +162,40 @@ def print_users_with_roles(users: list[User]):
         )
 
 
+# ===== USERS FINISH =====
+
+# ===== ROLES START =====
+
+
 def get_all_roles(conn) -> list[UserRole]:
     with conn.cursor(row_factory=class_row(UserRole)) as cur:
 
-        cur.execute("""SELECT 
+        cur.execute("""
+                    SELECT 
                     id, 
                     role_name,
                     description
-                    FROM user_roles ORDER BY id ASC""")
+                    FROM user_roles ORDER BY id ASC
+                    """)
 
         return list(cur.fetchall())
 
 
-def print_roles(roles: list[UserRole]):
-    print("Пользователи:")
+def get_role_by_id(conn, id: int) -> UserRole | None:
+    with conn.cursor(row_factory=class_row(UserRole)) as cur:
+        cur.execute(
+            """
+                    SELECT 
+                    id, 
+                    role_name,
+                    description
+                    FROM user_roles 
+                    WHERE id = %s
+                    """,
+            (id,),
+        )
 
-    print(f"{'ID':<5}{'ROLE NAME':<15}{'DESCRIPTION':<50}")
-
-    for role in roles:
-        print(f"{role.id:<5}" f"{role.role_name:<15}" f"{role.description:<50}")
+        return cur.fetchone()
 
 
 def add_new_role(conn, role: UserRole):
@@ -190,20 +214,129 @@ def add_new_role(conn, role: UserRole):
     conn.commit()
 
 
-with get_connection() as conn:
-    while True:
-        users_with_roles = get_all_users_with_roles(conn)
-        print_users_with_roles(users_with_roles)
-
-        print("\n" + "*" * 50 + "\n")
-
-        roles = get_all_roles(conn)
-        print_roles(roles)
-
-        print("\n" + "=" * 100 + "\n")
-
-        input()
-
-        add_new_role(
-            conn, UserRole(role_name="новая роль", description="новое описание")
+def update_role_by_id(conn, role: UserRole) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+                    UPDATE user_roles
+	                SET role_name=%s, description=%s
+	                WHERE id=%s
+                    """,
+            (
+                role.role_name,
+                role.description,
+                role.id,
+            ),
         )
+
+        updated_rows = cur.rowcount
+
+    conn.commit()
+
+    return updated_rows != 0
+
+
+def delete_role_by_id(conn, id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+                    DELETE FROM user_roles
+                    WHERE id = %s
+                    """,
+            (id,),
+        )
+    conn.commit()
+
+
+def print_one_role(role: UserRole):
+    print(f"{role.id:<5}" f"{role.role_name:<15}" f"{role.description:<50}")
+
+
+def print_roles_table_header():
+    print(f"{'ID':<5}{'ROLE NAME':<15}{'DESCRIPTION':<50}")
+
+
+def print_roles(roles: list[UserRole]):
+    print("Пользователи:")
+
+    print_roles_table_header()
+
+    for role in roles:
+        print_one_role(role)
+
+
+# ===== USERS FINISH =====
+
+with get_connection() as conn:
+
+    is_run = True
+
+    while is_run == True:
+        try:
+            users_with_roles = get_all_users_with_roles(conn)
+            print_users_with_roles(users_with_roles)
+
+            print("\n" + "*" * 50 + "\n")
+
+            roles = get_all_roles(conn)
+            print_roles(roles)
+
+            print("\n" + "=" * 100 + "\n")
+
+            print("Меню:")
+            print("1. Вывести роль по id")
+            print("2. Добавить новую роль")
+            print("3. Удалить роль по id")
+            print("4. Обновить роль по id")
+
+            print("0. Выход")
+
+            menu_number = int(input("выберите пункт меню: "))
+
+            if menu_number == 1:
+                id = int(input("введите id роли: "))
+                role = get_role_by_id(conn, id)
+
+                print_roles_table_header()
+
+                if role == None:
+                    print(f"Роль с id {id} не найдена")
+                else:
+                    print_one_role(role)
+
+            elif menu_number == 2:
+                role_name = input("введите название роли: ")
+                description = input("введите описание роли: ")
+
+                add_new_role(
+                    conn, UserRole(role_name=role_name, description=description)
+                )
+            elif menu_number == 3:
+                id = int(input("введите id роли: "))
+
+                delete_role_by_id(conn, id)
+
+                print("успешно удалено")
+            elif menu_number == 4:
+
+                id = int(input("введите id роли: "))
+                role_name = input("введите название роли: ")
+                description = input("введите описание роли: ")
+
+                is_update = update_role_by_id(
+                    conn, UserRole(id=id, role_name=role_name, description=description)
+                )
+
+                if is_update == True:
+                    print("успешно обновлено")
+                else:
+                    print(f"роль c id {id} не найдена")
+            elif menu_number == 0:
+                is_run = False
+
+            input("\n\n\nдля продолжения нажмите <Enter>\n\n\n")
+        except Exception as e:
+            print(
+                f"Ошибка в работе с программой. Кратко: {str(e)}. Подробно: {repr(e)}"
+            )
+            is_run = False
