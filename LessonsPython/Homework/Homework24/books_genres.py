@@ -401,7 +401,7 @@ with get_connection() as conn:
                 id = int(input("введите id: "))
                 book = get_book_by_id(conn, id)
             
-                print_genres_table_header()
+                print_books_table_header()
                 if book == None:
                     print(f"Роль с id {id} не найдена")
                 else:
