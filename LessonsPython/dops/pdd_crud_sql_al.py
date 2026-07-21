@@ -17,8 +17,10 @@ from sqlalchemy.orm import (
 
 DATABASE_URL = "postgresql+psycopg://postgres:12345@localhost:5432/pdd_db"
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class SignCategory(Base):
     __tablename__ = "sign_categories"
@@ -40,7 +42,7 @@ class RoadSign(Base):
         nullable=False,
     )
 
-    category: Mapped[SignCategory] = relationship(back_populates="sign_categories")
+    category: Mapped[SignCategory] = relationship()
 
     image_path: Mapped[str] = mapped_column(String(2000), nullable=False)
 
@@ -54,32 +56,85 @@ get_session_local = sessionmaker(
 
 
 def get_all_road_signs_with_category(session: Session) -> list[RoadSign]:
-    query = select(RoadSign).options(joinedload(RoadSign.category)).order_by(RoadSign.id)
+    query = (
+        select(RoadSign).options(joinedload(RoadSign.category)).order_by(RoadSign.id)
+    )
 
     return list(session.scalars(query).all())
 
-def print_users_table_header():
+
+def print_road_signs_table_header():
     print(
-        f"{'ИД':<5}{'НАЗВАНИЕ':<40}{'ОПИСАНИЕ':<100}{'НАЗВАНИЕ КАТЕГОРИИ':<30}{'URL КАРТИНКИ':<30}
-        )
-    
+        f"{'ИД':<5}{'Название':<40}{'Описание':<100}{'Название категории':<35}{'URL Картинки':<30}"
+    )
+
+
 def print_one_road_sign(road_sign: RoadSign):
-        print(
-        f"{road_sign.id:<5}"
-        f"{road_sign.name:<40}"
-        f"{road_sign.description:<100}"
-        f"{road_sign.category_name:<35}"
-        f"{road_sign.image_path:<10}")
-    
-def get_all_sign_categories(session: Session):
+    print(
+        f"{road_sign.id:<5}{road_sign.name:<40}{road_sign.description:<100}{road_sign.category.name:<35}{road_sign.image_path:<30}"
+    )
+
+
+def print_all_road_signs_with_category(road_signs: list[RoadSign]):
+    print("Знаки:\n")
+
+    print_road_signs_table_header()
+
+    for road_sign in road_signs:
+        print_one_road_sign(road_sign)
+
+
+def get_all_sign_categories(session: Session) -> list[SignCategory]:
     query = select(SignCategory).order_by(SignCategory.id)
 
     return list(session.scalars(query).all())
 
-def print_sign_categories():
-    print(
-        f"{'ИД':<5}{'НАЗВАНИЕ':<40}
-        )
+
+def print_sign_categories(sign_categories: list[SignCategory]):
+    print("Категории знаков:\n")
+
+    print(f"{'ИД':<5}{'Название':<40}")
+
+    for sign_category in sign_categories:
+        print(f"{sign_category.id:<5}{sign_category.name:<40}")
+
+
+def get_road_sign_by_id(session: Session, id: int) -> RoadSign | None:
+    return session.get(RoadSign, id)
+
+
+def add_new_road_sign(session: Session, new_road_sign: RoadSign):
+    session.add(new_road_sign)
+    session.commit()
+
+
+def delete_road_sign_by_id(session: Session, id: int) -> bool:
+    find_road_sign = get_road_sign_by_id(session, id)
+
+    if find_road_sign == None:
+        return False
+
+    session.delete(find_road_sign)
+    session.commit()
+
+    return True
+
+
+def update_road_sign_by_id(session: Session, update_road_sign: RoadSign) -> bool:
+    find_road_sign = get_road_sign_by_id(session, update_road_sign.id)
+
+    if find_road_sign == None:
+        return False
+
+    find_road_sign.name = update_road_sign.name
+    find_road_sign.description = update_road_sign.description
+    find_road_sign.category_id = update_road_sign.category_id
+    find_road_sign.image_path = update_road_sign.image_path
+
+    session.commit()
+
+    return True
+
 
 with get_session_local() as session:
     is_run = True
@@ -92,7 +147,7 @@ with get_session_local() as session:
             print("\n" + "*" * 50 + "\n")
 
             sign_categories = get_all_sign_categories(session)
-            print_sign_categories(roles)
+            print_sign_categories(sign_categories)
 
             print("\n" + "=" * 100 + "\n")
 
@@ -125,7 +180,7 @@ with get_session_local() as session:
 
                 add_new_road_sign(
                     session,
-                    road_sign=RoadSign(
+                    RoadSign(
                         name=name,
                         description=description,
                         category_id=category_id,
@@ -151,9 +206,9 @@ with get_session_local() as session:
                 category_id = int(input("ИД категории знака: "))
                 image_path = input("url изображения знака: ")
 
-                is_updated = update_user_by_id(
+                is_updated = update_road_sign_by_id(
                     session,
-                    road_sign=RoadSign(
+                    RoadSign(
                         id=id,
                         name=name,
                         description=description,

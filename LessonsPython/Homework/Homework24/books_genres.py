@@ -2,153 +2,88 @@ import psycopg
 from psycopg.rows import dict_row, class_row
 from dataclasses import dataclass
 
-DB_CONFIG = {
-    "host": "localhost",
-    "port": "5432",
-    "dbname": "db_homework2",
-    "user": "postgres",
-    "password": "12345",
-}
+from sqlalchemy import (
+    ForeignKey,
+    Integer,
+    String,
+    Float,
+    Boolean,
+    create_engine,
+    select,
+)
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    Session,
+    joinedload,
+    mapped_column,
+    relationship,
+    sessionmaker,
+)
+DATABASE_URL = "postgresql+psycopg://postgres:12345@localhost:5432/db_homework2"
 
 
-@dataclass(slots=True)
-class Genre:
-    name: str
-    description: str
-    id: int | None = None
+class Base(DeclarativeBase):
+    pass
 
-@dataclass(slots=True)
-class Book:
-    title: str
-    author: str
-    publication_year: int
-    pages_count: int
-    rating: float
-    is_available: bool
-    genre_id: int
-    id: int | None = None 
+class Genre(Base):
+    __tablename__ = "genres"
 
-    genre: Genre | None = None
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+
+
+class Book(Base):
+    __tablename__ = "books"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) 
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    author: Mapped[str] = mapped_column(String(100), nullable=False)
+    publication_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    pages_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    rating: Mapped[float] = mapped_column(Float, nullable=False)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+    genre_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("genres.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        nullable=False,
+    )
+
+    genre: Mapped[Genre] = relationship()
 
     def is_available_to_str(self):
         return "да" if self.is_available == True else "нет"
 
-def get_connection():
-    return psycopg.connect(**DB_CONFIG)
+engine = create_engine(DATABASE_URL, echo=False)
 
-def get_all_books(conn) -> list[Book]:
-    with conn.cursor(row_factory=class_row(Book)) as cur:
+get_session_local = sessionmaker(
+    bind=engine,
+    expire_on_commit=True,
+)
 
-        cur.execute("""
-            SELECT
-            id,
-            title,
-            author,
-            publication_year,
-            pages_count,
-            rating,
-            is_available,
-            genre_id
-            FROM books
-            ORDER BY id ASC;
-        """)
+def get_all_books(session: Session) -> list[Book]:
+    query = (select(Book).order_by(Book.id))
 
-    return list(cur.fetchall())
+    return list(session.scalars(query).all())
       
-def get_all_books_with_genres(conn)-> list[Book]:
-    books_list = []
-    with conn.cursor(row_factory=dict_row) as cur:
+def get_all_books_with_genres(session: Session)-> list[Book]:
+    query = (
+        select(Book).options(joinedload(Book.genre)).order_by(Book.id)
+    )
 
-        cur.execute("""
-            SELECT
-            b.id,
-            b.title,
-            b.author,
-            b.publication_year,
-            b.pages_count,
-            b.rating,
-            b.is_available,
-            b.genre_id,
-                    
-            g.id AS g_id,
-            g.name,
-            g.description
-            FROM books AS b
-            JOIN genres AS g
-            ON b.genre_id = g.id
-            ORDER BY b.id ASC;
-        """)
+    return list(session.scalars(query).all())
 
-        rows = cur.fetchall()
+def get_all_genres(session: Session) -> list[Genre]:
+    query = (select(Genre).order_by(Genre.id))
 
-    for row in rows:
-        new_genre = Genre(
-            id=row["g_id"],
-            name=row["name"],
-            description=row["description"]
-            )
+    return list(session.scalars(query).all())
 
-        new_book = Book(
-            id=row["id"],
-            title=row["title"],
-            author=row["author"],
-            publication_year=row["publication_year"],
-            pages_count=row["pages_count"],
-            rating=row["rating"],
-            is_available=row["is_available"],
-            genre_id=row["genre_id"],
-            genre=new_genre
-            )
+def get_book_by_id(session: Session, id: int) -> Book | None:
+    return session.get(Book, id)
 
-        books_list.append(new_book)
-
-    return books_list
-
-def get_all_genres(conn) -> list[Genre]:
-    with conn.cursor(row_factory=class_row(Genre)) as cur:
-        cur.execute("""
-            SELECT
-            id,
-            name,
-            description
-            FROM genres
-            ORDER BY id ASC;
-        """)
-        return list(cur.fetchall())
-
-def get_book_by_id(conn, id: int) -> Book | None:
-    with conn.cursor(row_factory=class_row(Book)) as cur:
-        cur.execute("""
-                    SELECT id, 
-                    title, 
-                    author, 
-                    publication_year, 
-                    pages_count, 
-                    rating,
-                    is_available, 
-                    genre_id
-                    FROM books
-                    WHERE id = %s;
-                """,
-                (id,),
-                )
-        
-        return cur.fetchone()
-
-def get_genre_by_id(conn, id: int)-> Genre | None:
-    with conn.cursor(row_factory=class_row(Genre)) as cur:
-        cur.execute("""
-                SELECT
-                id, 
-                name, 
-                description
-                FROM genres
-                WHERE id = %s
-""",
-(id,),        
-                    )
-        return cur.fetchone()
-
+def get_genre_by_id(session: Session, id: int)-> Genre | None:
+    return session.get(Genre, id)
 
 
 def print_books_table_header():
@@ -211,134 +146,84 @@ def print_genres(genres: list[Genre]):
 
 
 
-def add_new_book(conn, book: Book):
-    with conn.cursor() as cur:
-        cur.execute("""
-                    INSERT INTO books 
-                    (title, 
-                    author, 
-                    publication_year, 
-                    pages_count, 
-                    rating, 
-                    is_available, 
-                    genre_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s);
-                """,
-                (book.title,
-                 book.author,
-                 book.publication_year,
-                 book.pages_count,
-                 book.rating,
-                 book.is_available,
-                 book.genre_id,
-                ),) 
+def add_new_book(session: Session, book: Book):
+    session.add(book)
+    session.commit()
 
-    conn.commit()   
 
-def update_book_by_id(conn, book: Book) -> bool:
-    with conn.cursor() as cur:
-        cur.execute("""
-                    UPDATE books
-                    SET 
-                    title = %s, 
-                    author = %s, 
-                    publication_year = %s, 
-                    pages_count = %s, 
-                    rating = %s, 
-                    is_available = %s, 
-                    genre_id = %s
-                    WHERE id = %s;
-                """,
-                (book.title,
-                 book.author,
-                 book.publication_year,
-                 book.pages_count,
-                 book.rating,
-                 book.is_available,
-                 book.genre_id,
-                book.id,),) 
-        updated_rows = cur.rowcount
+def update_book_by_id(session: Session, update_book: Book) -> bool:
+    find_book = get_book_by_id(session, update_book.id)
 
-    conn.commit()
-    return updated_rows != 0
+    if find_book == None:
+        return False
+    
+    find_book.title = update_book.title
+    find_book.author = update_book.author
+    find_book.publication_year = update_book.publication_year
+    find_book.pages_count = update_book.pages_count
+    find_book.rating = update_book.rating
+    find_book.is_available = update_book.is_available
+    find_book.genre_id = update_book.genre_id
+    
+    session.commit()
+
+    return True
        
-def delete_book_by_id(conn, id: int):
-    with conn.cursor() as cur:
-        cur.execute("""
-                    DELETE FROM books
-                    WHERE id = %s;
-                 """,
-                (id,),
-                ) 
+def delete_book_by_id(session: Session, id: int) -> bool:
+    find_book = get_book_by_id(session, id)
 
-        deleted_rows = cur.rowcount
+    if find_book == None:
+        return False
 
-    conn.commit()
+    session.delete(find_book)
+    session.commit()
 
-    return deleted_rows != 0
+    return True
  
 
 
-def add_new_genre(conn, genre: Genre):
-    with conn.cursor() as cur:
-        cur.execute("""
-                INSERT INTO genres (name, description)
-                VALUES (%s, %s)
-                """,
-            (
-                genre.name,
-                genre.description,
-            ),
-        )
-    conn.commit()
+def add_new_genre(session: Session, genre: Genre):
+    session.add(genre)
+    session.commit()
 
-def update_genre_by_id(conn, genre: Genre) -> bool:
-    with conn.cursor() as cur:
-        cur.execute("""
-                    UPDATE genres
-                    SET name = %s, 
-                    description = %s
-                    WHERE id = %s;
-                """,
-                (
-                    genre.name,
-                    genre.description,
-                    genre.id,
-                ),
-                )
-        updated_rows = cur.rowcount
 
-    conn.commit()
-    return updated_rows != 0
+def update_genre_by_id(session: Session, update_genre: Genre) -> bool:
+    find_genre = get_genre_by_id(session, update_genre.id)
 
-def delete_genre_by_id(conn, id: int):
-    with conn.cursor() as cur:
-        cur.execute("""
-                    DELETE FROM genres
-                    WHERE id = %s;
-                """,
-                (id,),
-                )  
+    if find_genre == None:
+        return False
 
-        deleted_rows = cur.rowcount
+    find_genre.name = update_genre.name
+    find_genre.description = update_genre.description
 
-    conn.commit()
+    session.commit()
 
-    return deleted_rows != 0
+    return True
+
+def delete_genre_by_id(session: Session, id: int) -> bool:
+    find_genre = get_genre_by_id(session, id)
+
+    if find_genre == None:
+        return False
+
+    session.delete(find_genre)
+    session.commit()
+
+    return True
 
 
 
-with get_connection() as conn:
+with get_session_local() as session:
     is_run = True
 
 
     while is_run == True: 
         try: 
-            books_with_genres = get_all_books_with_genres(conn)
+            books_with_genres = get_all_books_with_genres(session)
             print_books_with_genres(books_with_genres) 
             
             print("\n" + "*" * 50 + "\n") 
-            genres = get_all_genres(conn) 
+            genres = get_all_genres(session) 
             print_genres(genres)
 
             print("\n" + "=" * 100 + "\n")
@@ -358,11 +243,11 @@ with get_connection() as conn:
 
             if menu_number == 1:
                 id = int(input("введите id: "))
-                genre = get_genre_by_id(conn, id)
+                genre = get_genre_by_id(session, id)
             
                 print_genres_table_header()
                 if genre == None:
-                    print(f"Роль с id {id} не найдена")
+                    print(f"Жанр с id {id} не найден")
                 else:
                     print_one_genre(genre)
 
@@ -371,7 +256,7 @@ with get_connection() as conn:
                 description = input("введите описание жанра: ") 
             
                 add_new_genre( 
-                    conn, 
+                    session, 
                     Genre(name=name, description=description) 
                 ) 
                 
@@ -379,9 +264,12 @@ with get_connection() as conn:
 
             elif menu_number == 3: 
                 id = int(input("введите id: "))
-                genre = get_genre_by_id(conn, id) 
-                
-                delete_genre_by_id(conn, id)
+                is_deleted = delete_genre_by_id(session, id)
+
+                if is_deleted == True:
+                    print("успешно удалено")
+                else:
+                    print(f"жанр с id {id} не найден")
 
             elif menu_number == 4: 
                 id = int(input("введите id жанра: ")) 
@@ -389,7 +277,7 @@ with get_connection() as conn:
                 description = input("введите новое описание жанра: ") 
                 
                 is_update = update_genre_by_id( 
-                    conn, 
+                    session, 
                     Genre(id=id, name=name, description=description) ) 
                 
                 if is_update == True: 
@@ -399,11 +287,11 @@ with get_connection() as conn:
             
             elif menu_number == 5:
                 id = int(input("введите id: "))
-                book = get_book_by_id(conn, id)
+                book = get_book_by_id(session, id)
             
                 print_books_table_header()
                 if book == None:
-                    print(f"Роль с id {id} не найдена")
+                    print(f"книга с id {id} не найдена")
                 else:
                     print_one_book(book)
             
@@ -417,7 +305,7 @@ with get_connection() as conn:
                 genre_id = int(input("ID жанра: "))
             
                 add_new_book( 
-                    conn, 
+                    session, 
                     Book(
                         title=title, 
                         author=author, 
@@ -430,9 +318,12 @@ with get_connection() as conn:
 
             elif menu_number == 7:
                 id = int(input("введите id: "))
-                book = get_book_by_id(conn, id)
+                is_deleted = delete_book_by_id(session, id)
 
-                delete_book_by_id(conn, id)
+                if is_deleted == True:
+                    print("успешно удалено")
+                else:
+                    print(f"книга с id {id} не найдена")
 
             elif menu_number == 8:
                 id = int(input("введите id книги: ")) 
@@ -445,7 +336,7 @@ with get_connection() as conn:
                 genre_id = int(input("ID жанра: "))
 
                 is_update = update_book_by_id( 
-                    conn, 
+                    session, 
                     Book(id=id, 
                         title=title, 
                         author=author, 

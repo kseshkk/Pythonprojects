@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from sqlalchemy import (
+    Boolean,
+    DateTime,
     ForeignKey,
     Integer,
     String,
@@ -15,36 +19,47 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-DATABASE_URL = "postgresql+psycopg://postgres:12345@localhost:5432/pdd_db"
+DATABASE_URL = "postgresql+psycopg://postgres:12345@localhost:5432/db_steam"
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class SignCategory(Base):
-    __tablename__ = "sign_categories"
+class UserRole(Base):
+    __tablename__ = "user_roles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    role_name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+
+    users: Mapped[list["User"]] = relationship(back_populates="role")
 
 
-class RoadSign(Base):
-    __tablename__ = "road_signs"
+class User(Base):
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(200), nullable=False)
-    description: Mapped[str] = mapped_column(String(2000), nullable=False)
+    nickname: Mapped[str] = mapped_column(String(50), nullable=False)
+    email: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    steam_level: Mapped[int] = mapped_column(Integer, nullable=False)
+    hours_played: Mapped[int] = mapped_column(Integer, nullable=False)
+    last_online: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    is_online: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    category_id: Mapped[int] = mapped_column(
+    role_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("sign_categories.id", ondelete="RESTRICT", onupdate="RESTRICT"),
+        ForeignKey("user_roles.id", ondelete="RESTRICT", onupdate="RESTRICT"),
         nullable=False,
     )
 
-    category: Mapped[SignCategory] = relationship()
+    role: Mapped[UserRole] = relationship(back_populates="users")
 
-    image_path: Mapped[str] = mapped_column(String(2000), nullable=False)
+    def last_online_to_str(self):
+        return self.last_online.strftime("%d.%m.%Y %H:%M:%S")
+
+    def is_online_to_str(self):
+        return "да" if self.is_online == True else "нет"
 
 
 engine = create_engine(DATABASE_URL, echo=False)
@@ -55,85 +70,159 @@ get_session_local = sessionmaker(
 )
 
 
-def get_all_road_signs_with_category(session: Session) -> list[RoadSign]:
-    query = (
-        select(RoadSign).options(joinedload(RoadSign.category)).order_by(RoadSign.id)
-    )
+def get_all_users_with_roles(session: Session) -> list[User]:
+    query = select(User).options(joinedload(User.role)).order_by(User.id)
 
     return list(session.scalars(query).all())
 
 
-def print_road_signs_table_header():
-    print(
-        f"{'ИД':<5}{'Название':<40}{'Описание':<100}{'Название категории':<35}{'URL Картинки':<30}"
-    )
+def get_user_by_id(session: Session, id: int) -> User | None:
+    return session.get(User, id)
 
 
-def print_one_road_sign(road_sign: RoadSign):
-    print(
-        f"{road_sign.id:<5}{road_sign.name:<40}{road_sign.description:<100}{road_sign.category.name:<35}{road_sign.image_path:<30}"
-    )
-
-
-def print_all_road_signs_with_category(road_signs: list[RoadSign]):
-    print("Знаки:\n")
-
-    print_road_signs_table_header()
-
-    for road_sign in road_signs:
-        print_one_road_sign(road_sign)
-
-
-def get_all_sign_categories(session: Session) -> list[SignCategory]:
-    query = select(SignCategory).order_by(SignCategory.id)
-
-    return list(session.scalars(query).all())
-
-
-def print_sign_categories(sign_categories: list[SignCategory]):
-    print("Категории знаков:\n")
-
-    print(f"{'ИД':<5}{'Название':<40}")
-
-    for sign_category in sign_categories:
-        print(f"{sign_category.id:<5}{sign_category.name:<40}")
-
-
-def get_road_sign_by_id(session: Session, id: int) -> RoadSign | None:
-    return session.get(RoadSign, id)
-
-
-def add_new_road_sign(session: Session, new_road_sign: RoadSign):
-    session.add(new_road_sign)
+def add_new_user(session: Session, user: User):
+    session.add(user)
     session.commit()
 
 
-def delete_road_sign_by_id(session: Session, id: int) -> bool:
-    find_road_sign = get_road_sign_by_id(session, id)
+def delete_user_by_id(session: Session, id: int):
+    find_user = get_user_by_id(session, id)
 
-    if find_road_sign == None:
+    if find_user == None:
         return False
 
-    session.delete(find_road_sign)
+    session.delete(find_user)
     session.commit()
 
     return True
 
 
-def update_road_sign_by_id(session: Session, update_road_sign: RoadSign) -> bool:
-    find_road_sign = get_road_sign_by_id(session, update_road_sign.id)
+def update_user_by_id(session: Session, user: User) -> bool:
+    find_user = get_user_by_id(session, user.id)
 
-    if find_road_sign == None:
+    if find_user == None:
         return False
 
-    find_road_sign.name = update_road_sign.name
-    find_road_sign.description = update_road_sign.description
-    find_road_sign.category_id = update_road_sign.category_id
-    find_road_sign.image_path = update_road_sign.image_path
+    find_user.nickname = user.nickname
+    find_user.email = user.email
+    find_user.steam_level = user.steam_level
+    find_user.hours_played = user.hours_played
+    find_user.last_online = user.last_online
+    find_user.is_online = user.is_online
+    find_user.role_id = user.role_id
 
     session.commit()
 
     return True
+
+
+def print_users_with_roles(users: list[User]):
+    print("Пользователи:")
+
+    print(
+        f"{'ID':<5}{'NICKNAME':<20}{'EMAIL':<30}{'LEVEL':<10}{'HOURS':<10}{'LAST ONLINE':<22}{'ONLINE':<10}{'ROLE ID':<10}{'ROLE NAME':<15}{'DESCRIPTION'}"
+    )
+
+    for user in users:
+
+        print(
+            f"{user.id:<5}"
+            f"{user.nickname:<20}"
+            f"{user.email:<30}"
+            f"{user.steam_level:<10}"
+            f"{user.hours_played:<10}"
+            f"{user.last_online_to_str():<22}"
+            f"{user.is_online_to_str():<10}"
+            f"{user.role_id:<10}"
+            f"{user.role.role_name:<15}"
+            f"{user.role.description}"
+        )
+
+
+def print_users_table_header():
+    print(
+        f"{'ID':<5}{'NICKNAME':<20}{'EMAIL':<30}{'LEVEL':<10}{'HOURS':<10}{'LAST ONLINE':<22}{'ONLINE':<10}{'ROLE ID':<10}"
+    )
+
+
+def print_one_user(user: User):
+    print(
+        f"{user.id:<5}"
+        f"{user.nickname:<20}"
+        f"{user.email:<30}"
+        f"{user.steam_level:<10}"
+        f"{user.hours_played:<10}"
+        f"{user.last_online_to_str():<22}"
+        f"{user.is_online_to_str():<10}"
+        f"{user.role_id:<10}"
+    )
+
+
+def print_users(users: list[User]):
+    print("Пользователи:")
+
+    print_users_table_header()
+
+    for user in users:
+        print_one_user(user)
+
+
+def get_all_roles(session: Session) -> list[UserRole]:
+    query = select(UserRole).order_by(UserRole.id)
+
+    return list(session.scalars(query).all())
+
+
+def get_role_by_id(session: Session, id: int) -> UserRole | None:
+    return session.get(UserRole, id)
+
+
+def add_new_role(session: Session, role: UserRole):
+    session.add(role)
+    session.commit()
+
+
+def delete_role_by_id(session: Session, id: int):
+    find_role = get_role_by_id(session, id)
+
+    if find_role == None:
+        return False
+
+    session.delete(find_role)
+    session.commit()
+
+    return True
+
+
+def update_role_by_id(session: Session, role: UserRole) -> bool:
+    find_role = get_role_by_id(session, role.id)
+
+    if find_role == None:
+        return False
+
+    find_role.role_name = role.role_name
+    find_role.description = role.description
+
+    session.commit()
+
+    return True
+
+
+def print_one_role(role: UserRole):
+    print(f"{role.id:<5}" f"{role.role_name:<15}" f"{role.description:<50}")
+
+
+def print_roles_table_header():
+    print(f"{'ID':<5}{'ROLE NAME':<15}{'DESCRIPTION':<50}")
+
+
+def print_roles(roles: list[UserRole]):
+    print("Роли:")
+
+    print_roles_table_header()
+
+    for role in roles:
+        print_one_role(role)
 
 
 with get_session_local() as session:
@@ -141,86 +230,167 @@ with get_session_local() as session:
 
     while is_run == True:
         try:
-            road_signs = get_all_road_signs_with_category(session)
-            print_all_road_signs_with_category(road_signs)
+            users_with_roles = get_all_users_with_roles(session)
+            print_users_with_roles(users_with_roles)
 
             print("\n" + "*" * 50 + "\n")
 
-            sign_categories = get_all_sign_categories(session)
-            print_sign_categories(sign_categories)
+            roles = get_all_roles(session)
+            print_roles(roles)
 
             print("\n" + "=" * 100 + "\n")
 
             print("Меню:")
-            print("1. Вывести знак по id")
-            print("2. Добавить ноый знак")
-            print("3. Удалить знак по id")
-            print("4. Обновить знак по id")
+            print("1. Вывести роль по id")
+            print("2. Добавить новую роль")
+            print("3. Удалить роль по id")
+            print("4. Обновить роль по id")
+
+            print("5. Вывести пользователя по id")
+            print("6. Добавить нового пользователя")
+            print("7. Удалить пользователя по id")
+            print("8. Обновить пользователя по id")
 
             print("0. Выход")
 
             menu_number = int(input("выберите пункт меню: "))
 
             if menu_number == 1:
-                id = int(input("введите id знака: "))
+                id = int(input("введите id роли: "))
+                role = get_role_by_id(session, id)
 
-                road_sign = get_road_sign_by_id(session, id)
+                print_roles_table_header()
 
-                print_road_signs_table_header()
-
-                if road_sign == None:
-                    print(f"знак с id {id} не найден")
+                if role == None:
+                    print(f"Роль с id {id} не найдена")
                 else:
-                    print_one_road_sign(road_sign)
-            elif menu_number == 2:
-                name = input("название: ")
-                description = input("описание: ")
-                category_id = int(input("ИД категории знака: "))
-                image_path = input("url изображения знака: ")
+                    print_one_role(role)
 
-                add_new_road_sign(
-                    session,
-                    RoadSign(
-                        name=name,
-                        description=description,
-                        category_id=category_id,
-                        image_path=image_path,
-                    ),
+            elif menu_number == 2:
+                role_name = input("введите название роли: ")
+                description = input("введите описание роли: ")
+
+                add_new_role(
+                    session, UserRole(role_name=role_name, description=description)
                 )
 
                 print("успешно добавлено")
             elif menu_number == 3:
-                id = int(input("введите id знака: "))
+                id = int(input("введите id роли: "))
 
-                is_deleted = delete_road_sign_by_id(session, id)
+                is_deleted = delete_role_by_id(session, id)
 
                 if is_deleted == True:
-                    print("успешно удалено")
+                    print("Роль удалена")
                 else:
-                    print(f"знак с id {id} не найден")
+                    print("Роль не найдена")
             elif menu_number == 4:
-                id = int(input("введите id знака: "))
 
-                name = input("название: ")
-                description = input("описание: ")
-                category_id = int(input("ИД категории знака: "))
-                image_path = input("url изображения знака: ")
+                id = int(input("введите id роли: "))
+                role_name = input("введите название роли: ")
+                description = input("введите описание роли: ")
 
-                is_updated = update_road_sign_by_id(
+                is_update = update_role_by_id(
                     session,
-                    RoadSign(
-                        id=id,
-                        name=name,
-                        description=description,
-                        category_id=category_id,
-                        image_path=image_path,
+                    UserRole(id=id, role_name=role_name, description=description),
+                )
+
+                if is_update == True:
+                    print("успешно обновлено")
+                else:
+                    print(f"роль c id {id} не найдена")
+            elif menu_number == 5:
+                id = int(input("введите id пользователя: "))
+
+                user = get_user_by_id(session, id)
+
+                print_users_table_header()
+
+                if user == None:
+                    print(f"Пользователь с id {id} не найден")
+                else:
+                    print_one_user(user)
+            elif menu_number == 6:
+                nickname = input("Никнейм: ")
+                email = input("Email: ")
+                steam_level = int(input("Уровень Steam: "))
+                hours_played = int(input("Часы: "))
+
+                # Формат ввода даты: ГГГГ-ММ-ДД ЧЧ:ММ:СС (например, 2026-07-08 14:30:00)
+                last_online = datetime.fromisoformat(
+                    input("Последний онлайн (ГГГГ-ММ-ДД ЧЧ:ММ:СС): ")
+                )
+
+                # Ввод True/False (любая непустая строка станет True, пустой Enter станет False)
+                is_online = bool(
+                    input(
+                        "В сети? (Нажмите Enter если нет, введите любой символ если да): "
+                    )
+                )
+                role_id = int(input("ID роли: "))
+
+                add_new_user(
+                    session,
+                    user=User(
+                        nickname=nickname,
+                        email=email,
+                        steam_level=steam_level,
+                        hours_played=hours_played,
+                        last_online=last_online,
+                        is_online=is_online,
+                        role_id=role_id,
                     ),
                 )
 
-                if is_updated == True:
+                print("успешно добавлено")
+            elif menu_number == 7:
+                id = int(input("введите id пользователя: "))
+
+                is_deleted = delete_user_by_id(session, id)
+
+                if is_deleted == True:
+                    print("Пользователь удален")
+                else:
+                    print("Пользователь не найден")
+            elif menu_number == 8:
+                id = int(input("введите id пользователя: "))
+
+                nickname = input("Никнейм: ")
+                email = input("Email: ")
+                steam_level = int(input("Уровень Steam: "))
+                hours_played = int(input("Часы: "))
+
+                # Формат ввода даты: ГГГГ-ММ-ДД ЧЧ:ММ:СС (например, 2026-07-08 14:30:00)
+                last_online = datetime.fromisoformat(
+                    input("Последний онлайн (ГГГГ-ММ-ДД ЧЧ:ММ:СС): ")
+                )
+
+                # Ввод True/False (любая непустая строка станет True, пустой Enter станет False)
+                is_online = bool(
+                    input(
+                        "В сети? (Нажмите Enter если нет, введите любой символ если да): "
+                    )
+                )
+                role_id = int(input("ID роли: "))
+
+                is_update = update_user_by_id(
+                    session,
+                    user=User(
+                        id=id,
+                        nickname=nickname,
+                        email=email,
+                        steam_level=steam_level,
+                        hours_played=hours_played,
+                        last_online=last_online,
+                        is_online=is_online,
+                        role_id=role_id,
+                    ),
+                )
+
+                if is_update == True:
                     print("успешно обновлено")
                 else:
-                    print(f"знак с id {id} не найден")
+                    print(f"пользователь c id {id} не найден")
             elif menu_number == 0:
                 is_run = False
 
