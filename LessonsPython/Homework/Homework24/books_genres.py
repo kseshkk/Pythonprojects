@@ -1,7 +1,3 @@
-import psycopg
-from psycopg.rows import dict_row, class_row
-from dataclasses import dataclass
-
 from sqlalchemy import (
     ForeignKey,
     Integer,
