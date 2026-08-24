@@ -10,7 +10,7 @@ import ui.screen4_walk_planning_step2.handlers
 import ui.screen5_walk_planning_step3.handlers
 import ui.screen6_walk_planning_step4.handlers
 import ui.screen7_show_planned_walks.handlers
-import ui.screen8_show_planned_walks.handlers
+import ui.screen8_show_walk_info.handlers
 
 
 bot.add_custom_filter(custom_filters.StateFilter(bot))
