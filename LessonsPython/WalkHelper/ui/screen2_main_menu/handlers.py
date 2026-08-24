@@ -19,8 +19,6 @@ def callback_handler_screen3_walk_planning_step1(call: types.CallbackQuery, stat
     bot.answer_callback_query(call.id)
 
     if call.data == "plan_walk":
-
-        state.add_data(gender=call.data)
         show_screen3_walk_planning_step1(call.message.chat.id, state)
 
 
