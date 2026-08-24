@@ -7,4 +7,4 @@ class BotStates(StatesGroup):
     screen5_walk_planning_step3 = State()
     screen6_walk_planning_step4 = State()
     screen7_show_planned_walks = State()
-    screen8_show_planned_walks = State()
+    screen8_show_walk_info = State()
