@@ -21,4 +21,4 @@ def callback_handler_screen3_walk_planning_step1(call: types.CallbackQuery, stat
         show_screen6_walk_planning_step4(call.message.chat.id, state)
 
     elif call.data == "back_to_screen4_walk_planning_step2":
-        
+        pass
