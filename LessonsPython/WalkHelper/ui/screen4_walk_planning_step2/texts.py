@@ -8,10 +8,10 @@ def get_text_for_screen5_walk_planning_step3(places: list[Place]):
             "ни одного места не найдено."
         )
 
-    output_text = "Планируем прогулку\n3.выберите место прогулки:\n"
+    output_text = "Планируем прогулку\n3.выберите место прогулки:\n\n"
 
     for i in range(0, len(places)):
-        output_text += f"{i+1}. {places[i].name}\n"
+        output_text += f"{i+1}. {places[i].name}\n\n"
 
 
     return output_text

@@ -26,7 +26,7 @@ def get_places_from_api(city_name, query):
 
     places = []
 
-    for current_place in data:
+    for current_place in data["results"]:
         places.append(Place(
             name=current_place["name"],
             latitude=current_place["latitude"],

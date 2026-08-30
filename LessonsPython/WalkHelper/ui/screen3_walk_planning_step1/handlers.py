@@ -7,6 +7,7 @@ from ui.states import BotStates
 from ui.screen3_walk_planning_step1.texts import *
 from ui.screen3_walk_planning_step1.keyboards import *
 
+
 def show_screen4_walk_planning_step2(chat_id: int, state: StateContext):
     state.delete()
     state.set(BotStates.screen4_walk_planning_step2)
@@ -15,6 +16,7 @@ def show_screen4_walk_planning_step2(chat_id: int, state: StateContext):
 @bot.message_handler(state=BotStates.screen3_walk_planning_step1, content_types=["text"])
 def message_handler_screen3_walk_planning_step1(message: types.Message, state: StateContext):
     city = message.text.strip()
+    
 
     if len(city) < 2 or len(city) > 50:
         bot.send_message(message.chat.id, get_error_text_for_screen3_walk_planning_step1())
@@ -25,5 +27,9 @@ def message_handler_screen3_walk_planning_step1(message: types.Message, state: S
     show_screen4_walk_planning_step2(message.chat.id, state)
 
 
-
+@bot.callback_query_handler(state=BotStates.screen3_walk_planning_step1)
+def callback_handler_screen3_walk_planning_step1(call: types.CallbackQuery, state: StateContext):
+    if call.data == "back":
+        state.set(BotStates.screen2_main_menu)
+        
 
