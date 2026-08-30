@@ -7,11 +7,27 @@ from ui.states import BotStates
 
 from ui.screen4_walk_planning_step2.texts import *
 from ui.screen4_walk_planning_step2.keyboards import *
+from services.places_service import *
 
 def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
     state.delete()
     state.set(BotStates.screen5_walk_planning_step3)
-    bot.send_message(chat_id, get_text_for_screen5_walk_planning_step3(), reply_markup=get_inline_keyboard_for_screen5_walk_planning_step3())
+    try:
+        places = get_places("Брянск")
+
+        bot.send_message(
+            chat_id, 
+            get_text_for_screen5_walk_planning_step3(places),
+
+            reply_markup=get_inline_keyboard_for_screen5_walk_planning_step3()
+            )
+
+    except:
+        bot.send_message(
+            chat_id,
+            "Ошибка в получении мест\nПопробуйте повторить запрос ещё раз через минуту"
+        )
+
 
 
 @bot.message_handler(state=BotStates.screen4_walk_planning_step2, content_types=["text"])
