@@ -9,7 +9,7 @@ def get_inline_keyboard_for_screen5_walk_planning_step3():
     keyboard.add(telebot.types.InlineKeyboardButton("3", callback_data="choose_place"))
     keyboard.add(telebot.types.InlineKeyboardButton("4", callback_data="choose_place"))
     keyboard.add(telebot.types.InlineKeyboardButton("5", callback_data="choose_place"))
-    keyboard.add(telebot.types.InlineKeyboardButton("Назад", callback_data="back_to_screen4_walk_planning_step2"))
+    keyboard.add(telebot.types.InlineKeyboardButton("Назад", callback_data="back"))
 
     return keyboard
 

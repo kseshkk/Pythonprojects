@@ -7,6 +7,8 @@ from ui.states import BotStates
 
 from ui.screen4_walk_planning_step2.texts import *
 from ui.screen4_walk_planning_step2.keyboards import *
+from ui.screen2_main_menu.handlers import show_screen3_walk_planning_step1
+
 from services.places_service import *
 
 def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
@@ -37,3 +39,11 @@ def message_handler_screen5_walk_planning_step3(message: types.Message, state: S
     state.add_data(data=data)
 
     show_screen5_walk_planning_step3(message.chat.id, state)
+
+
+@bot.callback_query_handler(state=BotStates.screen4_walk_planning_step2)
+def callback_handler_screen4_walk_planning_step2(call: types.CallbackQuery, state: StateContext):
+    bot.answer_callback_query(call.id)
+
+    if call.data == "back":
+        show_screen3_walk_planning_step1(call.message.chat.id, state)
