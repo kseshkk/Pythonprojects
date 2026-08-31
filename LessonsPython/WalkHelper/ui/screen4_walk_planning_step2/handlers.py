@@ -13,13 +13,15 @@ from ui.screen3_walk_planning_step1.handlers import *
 from services.places_service import *
 
 def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
-    state.delete()
     state.set(BotStates.screen5_walk_planning_step3)
+    with state.data() as data:
+        city = data["city"]
+
     try:
-        data = state.get_data()
-        city = data["find_city"]
 
         places = get_places(city)
+
+        state.add_data(city=city)
 
         bot.send_message(
             chat_id, 
@@ -33,6 +35,8 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
             chat_id,
             "Ошибка в получении мест\nПопробуйте повторить запрос ещё раз через минуту"
         )
+
+  
 
 
 

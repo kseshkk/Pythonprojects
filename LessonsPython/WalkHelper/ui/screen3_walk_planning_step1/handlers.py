@@ -43,7 +43,7 @@ def message_handler_screen3_walk_planning_step1(message: types.Message, state: S
             )
             return
         
-        state.add_data(find_city=find_city)
+        state.add_data(city=city)
 
         show_screen4_walk_planning_step2(message.chat.id, state)
 
