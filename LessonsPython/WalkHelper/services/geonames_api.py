@@ -27,9 +27,4 @@ def is_city_exist(city_name):
 
     return True
 
-    # city_data = cities_data[0]
-    # return City(
-    #     name=city_data["name"],
-    #     latitude=float(city_data["lat"]),
-    #     longitude=float(city_data["lng"]),
-    # )
+

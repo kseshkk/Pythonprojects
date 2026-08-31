@@ -3,4 +3,4 @@ def get_text_for_screen4_walk_planning_step2():
 
 
 def get_error_text_for_screen3_walk_planning_step1():
-    return "некорректный ввод\nпопробуйте еще раз"
+    return "Некорректный ввод\nПопробуйте еще раз"

@@ -39,7 +39,7 @@ def message_handler_screen3_walk_planning_step1(message: types.Message, state: S
         if find_city == False:
             bot.send_message(
                 message.chat.id,
-                "Ошибка. Такого города в России не существует. Введите корректное название города.",
+                "Ошибка. Такого города в России не существует.\nВведите корректное название города.",
             )
             return
         
