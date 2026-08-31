@@ -8,6 +8,7 @@ from ui.states import BotStates
 from ui.screen4_walk_planning_step2.texts import *
 from ui.screen4_walk_planning_step2.keyboards import *
 from ui.screen2_main_menu.handlers import show_screen3_walk_planning_step1
+from ui.screen3_walk_planning_step1.handlers import *
 
 from services.places_service import *
 
@@ -15,7 +16,10 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
     state.delete()
     state.set(BotStates.screen5_walk_planning_step3)
     try:
-        places = get_places("Брянск")
+        data = state.get_data()
+        city = data["find_city"]
+
+        places = get_places(city)
 
         bot.send_message(
             chat_id, 

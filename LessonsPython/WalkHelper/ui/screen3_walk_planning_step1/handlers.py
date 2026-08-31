@@ -4,7 +4,7 @@ from telebot.states.sync.context import StateContext
 from bot_instance import bot
 from ui.states import BotStates
 
-from services.geonames_api import *
+from api.geonames_api import *
 from ui.screen3_walk_planning_step1.texts import *
 from ui.screen3_walk_planning_step1.keyboards import *
 from ui.screen1_start.handlers import show_screen2_main_menu
