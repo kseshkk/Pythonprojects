@@ -10,7 +10,7 @@ from ui.screen3_walk_planning_step1.keyboards import *
 from ui.screen1_start.handlers import show_screen2_main_menu
 
 def show_screen4_walk_planning_step2(chat_id: int, state: StateContext):
-    state.delete()
+    
     state.set(BotStates.screen4_walk_planning_step2)
     bot.send_message(chat_id, 
                      get_text_for_screen4_walk_planning_step2(),

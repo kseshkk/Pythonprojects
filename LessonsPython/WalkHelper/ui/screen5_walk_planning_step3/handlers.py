@@ -10,9 +10,17 @@ from ui.screen5_walk_planning_step3.keyboards import *
 from ui.screen3_walk_planning_step1.handlers import show_screen4_walk_planning_step2
 
 def show_screen6_walk_planning_step4(chat_id: int, state: StateContext):
-    state.delete()
+
     state.set(BotStates.screen6_walk_planning_step4)
-    bot.send_message(chat_id, get_text_for_screen6_walk_planning_step4())
+
+    with state.data() as data:
+        city_name = data["city"]
+        date = data["date"]
+
+    bot.send_message(chat_id, 
+                     get_text_for_screen6_walk_planning_step4(city_name, date),
+                     reply_markup=get_inline_keyboard_for_screen6_walk_planning_step4()
+                     )
 
 @bot.callback_query_handler(state=BotStates.screen5_walk_planning_step3)
 def callback_screen5_walk_planning_step3(call: types.CallbackQuery, state: StateContext):

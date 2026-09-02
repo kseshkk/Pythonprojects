@@ -16,7 +16,7 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
     state.set(BotStates.screen5_walk_planning_step3)
 
     with state.data() as data:
-        city = data["city"]
+        city_name = data["city"]
     # with state.data() as data:
     #     date = data['date']
     #     print("DATA:", date)

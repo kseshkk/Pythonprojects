@@ -5,3 +5,10 @@ def get_inline_keyboard_for_screen3_walk_planning_step1():
     
     keyboard.add(telebot.types.InlineKeyboardButton("Назад", callback_data="back"))
     return keyboard
+
+
+def get_inline_keyboard_for_screen7_show_planned_walks():
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    
+    keyboard.add(telebot.types.InlineKeyboardButton("Назад", callback_data="back"))
+    return keyboard
