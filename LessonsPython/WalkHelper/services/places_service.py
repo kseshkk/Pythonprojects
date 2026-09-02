@@ -1,4 +1,4 @@
-from models.place import Place
+
 from api.places_api import *
 
 def get_places(city_name):

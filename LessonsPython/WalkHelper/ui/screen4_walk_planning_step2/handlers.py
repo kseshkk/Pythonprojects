@@ -14,14 +14,17 @@ from services.places_service import *
 
 def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
     state.set(BotStates.screen5_walk_planning_step3)
+
     with state.data() as data:
         city = data["city"]
+    # with state.data() as data:
+    #     date = data['date']
+    #     print("DATA:", date)
+    #     city_name = data['city']
+    #     print("CITY:", city_name)
 
     try:
-
-        places = get_places(city)
-
-        state.add_data(city=city)
+        places = get_places(city_name)
 
         bot.send_message(
             chat_id, 
@@ -36,15 +39,19 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
             "Ошибка в получении мест\nПопробуйте повторить запрос ещё раз через минуту"
         )
 
+    # except Exception as e:
+    #     print("ОШИБКА:", e)
+    #     raise
+
   
 
 
 
 @bot.message_handler(state=BotStates.screen4_walk_planning_step2, content_types=["text"])
 def message_handler_screen5_walk_planning_step3(message: types.Message, state: StateContext):
-    data = message.text.strip()
+    date = message.text.strip()
 
-    state.add_data(data=data)
+    state.add_data(date=date)
 
     show_screen5_walk_planning_step3(message.chat.id, state)
 
