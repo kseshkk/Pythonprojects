@@ -3,6 +3,7 @@ from telebot.states.sync.context import StateContext
 
 from bot_instance import bot
 
+from datetime import datetime
 from ui.states import BotStates
 
 from ui.screen4_walk_planning_step2.texts import *
@@ -17,11 +18,6 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
 
     with state.data() as data:
         city_name = data["city"]
-    # with state.data() as data:
-    #     date = data['date']
-    #     print("DATA:", date)
-    #     city_name = data['city']
-    #     print("CITY:", city_name)
 
     try:
         places = get_places(city_name)
@@ -30,7 +26,7 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
             chat_id, 
             get_text_for_screen5_walk_planning_step3(places),
 
-            reply_markup=get_inline_keyboard_for_screen5_walk_planning_step3()
+            reply_markup=get_inline_keyboard_for_screen5_walk_planning_step3(len(places))
             )
 
     except:
@@ -51,9 +47,27 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
 def message_handler_screen5_walk_planning_step3(message: types.Message, state: StateContext):
     date = message.text.strip()
 
-    state.add_data(date=date)
+    try:
+        user_date = datetime.strptime(date, "%d.%m.%Y").date()
 
-    show_screen5_walk_planning_step3(message.chat.id, state)
+        if user_date < datetime.today().date():
+            bot.send_message(
+                message.chat.id,
+                "Невозможно запланировать прогулку на прошлое))\n"
+                "Введите дату в формате ДД.ММ.ГГГГ:"
+            )
+            return
+
+        state.add_data(date=date)
+
+        show_screen5_walk_planning_step3(message.chat.id, state)
+
+    except:
+        bot.send_message(
+            message.chat.id,
+            "Некорректная дата.\n"
+            "Введите дату в формате ДД.ММ.ГГГГ:"
+        )
 
 
 @bot.callback_query_handler(state=BotStates.screen4_walk_planning_step2)
