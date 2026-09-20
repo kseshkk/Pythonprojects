@@ -47,12 +47,38 @@ def show_screen7_show_planned_walks(chat_id: int, state: StateContext):
 def show_screen8_show_walk_info(chat_id: int, state: StateContext):
     state.set(BotStates.screen8_show_walk_info)
 
-    bot.send_message(
-        chat_id, 
-        get_text_for_screen8_show_walk_info(walk),
+    with state.data() as data:
+        walk_id = data.get("selected_walk_id")
+        tg_user_id = data.get("tg_user_id")
 
-        reply_markup=get_inline_keyboard_for_screen8_show_walk_info()
+    try:
+        walk = show_walk(walk_id,tg_user_id)
+    
+        if walk is None:
+            bot.send_message(
+                chat_id,
+                "Прогулка не найдена."
+            )
+
+            show_screen7_show_planned_walks(chat_id, state)
+
+            return
+
+        bot.send_message(
+            chat_id, 
+            get_text_for_screen8_show_walk_info(walk),
+            reply_markup=get_inline_keyboard_for_screen8_show_walk_info()
+            )
+        
+    except Exception as e:
+        print(e)
+
+        bot.send_message(
+            chat_id,
+            "Ошибка работы с базой данных. "
+            "Попробуйте ещё раз позже."
         )
+
 
 
 
@@ -62,8 +88,7 @@ def callback_screen7_show_planned_walks(call: types.CallbackQuery, state: StateC
 
     if call.data == "back":
         show_screen2_main_menu(call.message.chat.id, state)
-
-
+        return
 
     try:
         index = int(call.data.split("_",1)[1])
@@ -71,17 +96,19 @@ def callback_screen7_show_planned_walks(call: types.CallbackQuery, state: StateC
         with state.data() as data:
             walks = data.get("walks",[])
 
-        if (index < 0 or index >= len(walks)):
+        # if (index < 0 or index >= len(walks)):
 
-            bot.send_message(
-                call.message.chat.id,
-                "Прогулка не найдена.")
+        #     bot.send_message(
+        #         call.message.chat.id,
+        #         "Прогулка не найдена.")
 
             return
 
         selected_walk = walks[index]
 
         state.add_data(selected_walk_id=selected_walk.id)
+
+        show_screen8_show_walk_info(call.message.chat.id,state)
 
     except Exception as e:
 

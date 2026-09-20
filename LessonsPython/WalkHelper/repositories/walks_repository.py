@@ -43,8 +43,7 @@ def select_walk_by_id(walk_id: int, tg_user_id: int) -> Walk | None:
 
         return session.scalar(query)
 
-def complete_walk(walk_id: int, tg_user_id: int) -> bool:
-
+def complete_walk(walk_id: int,tg_user_id: int) -> bool:
     with get_session() as session:
 
         query = (
@@ -60,10 +59,10 @@ def complete_walk(walk_id: int, tg_user_id: int) -> bool:
         if walk is None:
             return False
 
-        if walk.status == "завершено":
+        if walk.status is False:
             return False
 
-        # walk.status = "завершено"
+        walk.status = False
 
         session.commit()
 
