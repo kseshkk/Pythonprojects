@@ -102,7 +102,7 @@ def callback_screen7_show_planned_walks(call: types.CallbackQuery, state: StateC
         #         call.message.chat.id,
         #         "Прогулка не найдена.")
 
-            return
+            # return
 
         selected_walk = walks[index]
 
