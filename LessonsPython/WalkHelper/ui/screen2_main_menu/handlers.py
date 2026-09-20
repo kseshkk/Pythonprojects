@@ -28,7 +28,7 @@ def show_screen7_show_planned_walks(chat_id: int, state: StateContext):
         bot.send_message(
             chat_id,
             get_text_for_screen7_show_planned_walks(user_walks),
-            # reply_markup=get_inline_keyboard_for_screen7_show_planned_walks()
+            reply_markup=get_inline_keyboard_for_screen7_show_planned_walks()
         )
     except:
         bot.send_message(
