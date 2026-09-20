@@ -18,7 +18,7 @@ def insert_walk(tg_user_id: int, city_name: str, place_name, walk_date):
         session.commit()
 
 
-def select_all_walks(tg_user_id: int):
+def select_all_walks(tg_user_id: int) -> list[Walk]:
     with get_session() as session:
         query = (
             select(Walk)

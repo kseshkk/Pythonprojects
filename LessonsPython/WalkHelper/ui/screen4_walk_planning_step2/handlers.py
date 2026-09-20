@@ -21,6 +21,7 @@ def show_screen5_walk_planning_step3(chat_id: int, state: StateContext):
 
     try:
         places = get_places(city_name)
+        state.add_data(places=places)
 
         bot.send_message(
             chat_id, 
